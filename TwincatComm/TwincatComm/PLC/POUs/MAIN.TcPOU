@@ -1,0 +1,58 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="MAIN" Id="{7c126c04-4e7f-4582-b806-5142ed89f896}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM MAIN
+VAR
+	fbMotor: fbAbsolute;
+	
+	fbPower		:mc_Power;
+	fbAbsolute  :mc_MoveAbsolute;
+	axis		:axis_ref;
+	
+	ftrboEnable	:f_trig;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[
+gvl.stData.lrActualPos:=axis.NcToPlc.ActPos;
+gvl.stData.lrActualVelo:=axis.NcToPlc.ActVelo;
+gvl.stData.lrActualAcc:=axis.NcToPlc.ActAcc;
+
+fbMotor(
+	boEnable:=gvl.stData.boEnable , 
+	boStart:=gvl.stData.boStart , 
+	lrPos:=gvl.stData.lrPosition , 
+	lrVelo:=gvl.stData.lrVelocity , 
+	lrAcc:=gvl.stData.lrAcceleration , 
+	lrDec:=gvl.stData.lrDeceleration , 
+	lrJerk:=gvl.stData.lrJerk , 
+	fbPower:=fbPower , 
+	fbAbsolute:=fbAbsolute , 
+	axis:=axis );
+	
+IF fbAbsolute.Done THEN
+	gvl.stData.boStart:=false;
+END_IF 
+
+ftrboEnable(CLK:=gvl.stData.boEnable);
+
+IF ftrboEnable.Q THEN
+	gvl.stData.boStart:=false;
+END_IF]]></ST>
+    </Implementation>
+    <LineIds Name="MAIN">
+      <LineId Id="22" Count="3" />
+      <LineId Id="6" Count="0" />
+      <LineId Id="8" Count="9" />
+      <LineId Id="2" Count="0" />
+      <LineId Id="26" Count="1" />
+      <LineId Id="30" Count="0" />
+      <LineId Id="29" Count="0" />
+      <LineId Id="43" Count="0" />
+      <LineId Id="42" Count="0" />
+      <LineId Id="45" Count="0" />
+      <LineId Id="44" Count="0" />
+      <LineId Id="46" Count="1" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

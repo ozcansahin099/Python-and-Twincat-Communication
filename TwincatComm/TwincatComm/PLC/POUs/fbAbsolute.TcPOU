@@ -1,0 +1,119 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="fbAbsolute" Id="{73cc4ffd-d83d-468f-8f36-2038d1eb11a3}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK fbAbsolute
+VAR_INPUT
+	boEnable	:BOOL;
+	boStart		:BOOL;
+	
+	lrPos		:LREAL;
+	lrVelo		:LREAL;
+	lrAcc		:LREAL;
+	lrDec		:LREAL;
+	lrJerk		:LREAL;
+END_VAR
+VAR_OUTPUT
+END_VAR
+VAR
+	iState		:INT:=0;
+	sState		:STRING;
+	rtrboStart	:R_trig;
+	ftrboEnable	:f_trig;
+	tonMoveNotDone	:ton;
+END_VAR
+VAR_IN_OUT
+	fbPower		:mc_Power;
+	fbAbsolute  :mc_MoveAbsolute;
+	axis		:axis_ref;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[
+rtrboStart(CLK:=boStart);
+ftrboEnable(CLK:=boEnable);
+
+CASE iState OF
+0:
+	IF boEnable THEN
+		iState:=100;
+	END_IF
+100:
+	IF rtrboStart.Q THEN
+		fbAbsolute.Execute:=TRUE;
+		tonMoveNotDone.IN:=TRUE;
+		iState:=1000;
+	END_IF
+1000:
+	fbAbsolute.Execute:=FALSE;
+	IF fbAbsolute.Done  THEN
+		tonMoveNotDone.IN:=FALSE;
+		iState:=100;
+	ELSIF tonMoveNotDone.Q THEN
+		sState:='motor dont have achived target position';
+		tonMoveNotDone.IN:=FALSE;
+		iState:=100;
+	END_IF	
+END_CASE
+
+tonMoveNotDone(PT:=T#100s);
+
+IF ftrboEnable.Q THEN
+	iState:=0;
+	sState:='';
+	fbAbsolute.Execute:=FALSE;
+	tonMoveNotDone.IN:=FALSE;
+END_IF
+
+fbPower(
+	Axis:=axis , 
+	Enable:=boEnable , 
+	Enable_Positive:=boEnable , 
+	Enable_Negative:=boEnable , 
+	Override:=100);
+	
+fbAbsolute(
+	Axis:=axis , 
+	Position:=lrPos , 
+	Velocity:=lrVelo , 
+	Acceleration:=lrAcc , 
+	Deceleration:=lrDec , 
+	Jerk:=lrJerk  );]]></ST>
+    </Implementation>
+    <LineIds Name="fbAbsolute">
+      <LineId Id="121" Count="0" />
+      <LineId Id="76" Count="0" />
+      <LineId Id="122" Count="0" />
+      <LineId Id="79" Count="0" />
+      <LineId Id="77" Count="0" />
+      <LineId Id="80" Count="0" />
+      <LineId Id="83" Count="3" />
+      <LineId Id="88" Count="0" />
+      <LineId Id="95" Count="0" />
+      <LineId Id="103" Count="0" />
+      <LineId Id="89" Count="1" />
+      <LineId Id="93" Count="0" />
+      <LineId Id="96" Count="1" />
+      <LineId Id="118" Count="0" />
+      <LineId Id="98" Count="0" />
+      <LineId Id="104" Count="0" />
+      <LineId Id="107" Count="0" />
+      <LineId Id="119" Count="0" />
+      <LineId Id="105" Count="0" />
+      <LineId Id="99" Count="0" />
+      <LineId Id="81" Count="0" />
+      <LineId Id="116" Count="1" />
+      <LineId Id="110" Count="0" />
+      <LineId Id="109" Count="0" />
+      <LineId Id="111" Count="0" />
+      <LineId Id="120" Count="0" />
+      <LineId Id="113" Count="0" />
+      <LineId Id="115" Count="0" />
+      <LineId Id="112" Count="0" />
+      <LineId Id="78" Count="0" />
+      <LineId Id="21" Count="5" />
+      <LineId Id="37" Count="0" />
+      <LineId Id="54" Count="1" />
+      <LineId Id="57" Count="4" />
+    </LineIds>
+  </POU>
+</TcPlcObject>
